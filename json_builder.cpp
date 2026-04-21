@@ -8,25 +8,47 @@ Builder::DictValueContext Builder::StartDict() {
 
     Node* node_ptr = new Node(Dict());
     nodes_stack_.push_back(std::move(node_ptr));
+    dict_stack_.push_back(dict_stack_.size());
+    if(first_run_){
+        in_dict_ = true;
+        first_run_ = false;
+    }
+
+
     return BaseContext{ *this };
 }
 
 Builder::ArrayItemContext Builder::StartArray() {
     Node* node_ptr = new Node(Array());
     nodes_stack_.push_back(std::move(node_ptr));
-    array_stack_.push_back(true);
+    array_stack_.push_back(array_stack_.size());
+    //in_array_ = true;
+    if(first_run_){
+        in_array_ = true;
+        first_run_ = false;
+    }
     return BaseContext{ *this };
 }
 
 Builder::BaseContext Builder::EndDict() {
-    auto dict_ptr = std::find_if(nodes_stack_.rbegin(),nodes_stack_.rend(),[](Node* node){
-        return node->IsDict();
-    });
+    int skip = dict_stack_.front();
+    dict_stack_.pop_front();
+    auto dict_iter = nodes_stack_.rbegin();
+    auto f_iter = nodes_stack_.rbegin();
+    for(int i=0; i <= skip; ++i ){
+        dict_iter = std::find_if(dict_iter,nodes_stack_.rend(),[](Node* node){
+           return node->IsDict();
+       });
+        f_iter = dict_iter;
+        ++f_iter;
+    }
+
     Dict dict = Dict();
     bool is_value=true;
     std::string key="";
     Node * value_ptr;
-    for(auto iter = nodes_stack_.rbegin(); iter != dict_ptr; ++iter){
+
+    for(auto iter = nodes_stack_.rbegin(); iter != dict_iter; ++iter){
         if(is_value){
             value_ptr = *iter;
             is_value = false;
@@ -34,39 +56,40 @@ Builder::BaseContext Builder::EndDict() {
             Node * key_node = *iter;
             if(key_node->IsString()){
                 key = key_node->AsString();
+            }else{
+
             }
             dict.insert({key,*value_ptr});
             is_value = true;
         }
     }
-
-    *dict_ptr = new Node(dict);
-    nodes_stack_.erase(dict_ptr.base(),nodes_stack_.end());
+   *dict_iter = new Node(dict);
+   nodes_stack_.erase(dict_iter.base(),nodes_stack_.end());
     return *this;
 }
 
 Builder::BaseContext Builder::EndArray() {
-    array_stack_.pop_back();
-
-    int skip = array_stack_.size();
+    int skip = array_stack_.front();
+    array_stack_.pop_front();
     auto array_iter = nodes_stack_.rbegin();
-    std::cout << "skip" << skip << std::endl;
+    auto f_iter = nodes_stack_.rbegin();
     for(int i=0; i <= skip; ++i){
-     array_iter = std::find_if(array_iter,nodes_stack_.rend(),[](Node* node){
+     array_iter = std::find_if(f_iter,nodes_stack_.rend(),[](Node* node){
         return node->IsArray();
     });
+    f_iter = array_iter;
+   ++f_iter;
     }
     Array array = Array();
-    Node * value_ptr;
+
     for(auto iter = nodes_stack_.rbegin(); iter != array_iter; ++iter){
         Node * node = *iter;
         array.push_back(*node);
     }
      std::reverse(array.begin(), array.end());
-    *array_iter = new Node(array);
 
-     nodes_stack_.erase(array_iter.base(),nodes_stack_.end());
-
+     *array_iter = new Node(array);
+    nodes_stack_.erase(array_iter.base(),nodes_stack_.end());
     return *this;
 }
 
@@ -74,7 +97,9 @@ Builder::ValueContext Builder::Value(Node node){
 
         Node* node_ptr = new Node(node);
         nodes_stack_.push_back(std::move(node_ptr));
-
+      //  if(first_run_){
+      //      first_run_ = false;
+      //  }
     return BaseContext{ *this };
 }
 
@@ -88,7 +113,7 @@ Builder::KeyContext Builder::Key(std::string string){
 
 Node Builder::Build(){
    // if(nodes_stack_.size() == 1){
-    std::cout << "stack size: " << nodes_stack_.size()  << std::endl;
+    //std::cout << "stack size: " << nodes_stack_.size()  << std::endl;
         Node node = *nodes_stack_.back();
 
         root_ = node;

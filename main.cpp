@@ -7,6 +7,7 @@
 using namespace std;
 
 int main() {
+/*
     json::Print(
         json::Document{
             json::Builder{}
@@ -15,6 +16,7 @@ int main() {
         },
         cout
         );
+
     cout << endl;
     json::Print(
         json::Document{
@@ -42,7 +44,7 @@ int main() {
         );
     cout << endl;
 
-
+*/
     json::Print(
         json::Document{
             json::Builder{}
@@ -66,7 +68,6 @@ int main() {
     cout << endl;
 
 
-
     json::Print(
         json::Document{
             json::Builder{}.StartArray().StartArray().EndArray().Value(1).EndArray().Build()
@@ -74,7 +75,7 @@ int main() {
         cout
         );
     cout << endl;
-    /*
+
 
     json::Print(
         json::Document{
@@ -84,6 +85,7 @@ int main() {
         );
     cout << endl;
 
+/*
     json::Print(
         json::Document{
             json::Builder{}.StartDict().Key("1").StartArray().EndArray().Key("2").Value(2).EndDict().Build()
@@ -91,6 +93,17 @@ int main() {
         cout
         );
     cout << endl;
+*/
 
-   */
+/*
+    json::Print(
+        json::Document{
+            json::Builder{}.StartArray().StartDict().Key("1"s).Value(12).EndDict().EndDict().Build()
+        },
+        cout
+        );
+    cout << endl;
+*/
+
+
 }
