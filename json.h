@@ -22,6 +22,41 @@ class Node final
 public:
     using variant::variant;
     using Value = variant;
+    /*
+    Node Build() = delete;
+    template <typename T>
+    T EndDict(){
+        throw std::logic_error("EndDict() after Constructor");
+    }
+    template <typename T>
+    T EndArray(){
+        throw std::logic_error("EndArray() after Constructor");
+    }
+
+    template <typename T>
+    T Key(){
+        throw std::logic_error("key() after Constructor");
+    }
+*/
+
+    /*
+    Node Build() {
+        throw std::logic_error("Build after Constructor");
+    }
+    template <typename T>
+    T EndDict(){
+        throw std::logic_error("EndDict() after Constructor");
+    }
+    template <typename T>
+    T EndArray(){
+            throw std::logic_error("EndArray() after Constructor");
+    }
+
+    template <typename T>
+    T Key(){
+        throw std::logic_error("key() after Constructor");
+    }
+*/
 
     bool IsInt() const {
         return std::holds_alternative<int>(*this);

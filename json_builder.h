@@ -13,6 +13,7 @@ class Builder {
     class ArrayItemContext;
     class ValueContext;
     class KeyContext;
+    class BuildContext;
 public:
     Builder() = default;
     DictValueContext StartDict();
@@ -23,7 +24,9 @@ public:
     BaseContext EndArray();
     Node Build();
     bool ValueIsRoot(){
-        return first_run_;
+        bool tmp = first_run_;
+        first_run_ = false;
+        return tmp;
     }
 
 private:
@@ -42,30 +45,30 @@ private:
     class BaseContext {
     public:
         BaseContext(Builder& builder)
-            : builder_(builder)
-        {
+            : builder_(builder){
+
         }
         DictValueContext StartDict() {
-          if(builder_.in_dict_ && builder_.is_value_ ) {
-             throw std::logic_error("Start dict in dict after value");
+            if(builder_.in_dict_ && builder_.is_value_ ) {
+               // throw std::logic_error("Start dict in dict after value");
             }
-          //std::cout << "start d" << builder_.in_dict_  << "v"<< builder_.is_value_ << std::endl;
-            builder_.in_dict_ = true;
-            builder_.is_value_ = false;
-            builder_.in_array_ = false;
+            //std::cout << "start d" << builder_.in_dict_  << "v"<< builder_.is_value_ << std::endl;
+
+      //      builder_.is_value_ = false;
+           // builder_.in_array_ = false;
             return builder_.StartDict();
         }
         ArrayItemContext StartArray() {
-            builder_.in_dict_ = false;
-            builder_.in_array_ = true;
-            builder_.is_value_ = false;
+          //  builder_.in_dict_ = false;
+
+           // builder_.is_value_ = false;
             return builder_.StartArray();
         }
         ValueContext Value(Node node) {
             if(builder_.in_dict_ && builder_.is_value_){
                 throw std::logic_error("Double value in dict");
             }
-           // std::cout << "value called" << builder_.in_dict_ << builder_.is_value_<< std::endl;
+            // std::cout << "value called" << builder_.in_dict_ << builder_.is_value_<< std::endl;
             builder_.is_value_ =true;
             builder_.is_key_ = false;
             return builder_.Value(node);
@@ -77,48 +80,72 @@ private:
             return builder_.Key(string);
         }
         BaseContext EndDict() {
-           if(builder_.dict_stack_.size() == 0){
-                throw std::logic_error("Build too soon");
+            if(builder_.dict_stack_.size() == 0){
+                throw std::logic_error("dict stack size");
             }
-          //  std::cout << "end dict " << builder_.dict_stack_.size() << std::endl;
-            builder_.in_dict_ = false;
+            //  std::cout << "end dict " << builder_.dict_stack_.size() << std::endl;
+
             return builder_.EndDict();
         }
         BaseContext EndArray() {
             if(builder_.array_stack_.size() == 0){
-                throw std::logic_error("Build too soon");
+                throw std::logic_error("array stack size = 0");
             }
-         //std::cout << "end array " << builder_.array_stack_.size() << std::endl;
-            builder_.in_array_ = false;
+            //std::cout << "end array " << builder_.array_stack_.size() << std::endl;
+
             return builder_.EndArray();
         }
         Node Build() {
 
+            if(builder_.nodes_stack_.empty()){
+                throw std::logic_error("nodes_stack_ empty");
+            }
+
+            if(builder_.first_run_){
+                throw std::logic_error("Build first run");
+            }
+
             if(builder_.in_array_  || builder_.in_dict_){
-                throw std::logic_error("Build too soon");
+                throw std::logic_error("builder in array or in dict");
             }
 
             if(builder_.nodes_stack_.size() > 1){
-                throw std::logic_error("Build too soon");
+                throw std::logic_error("nodes stack size >1");
             }
 
             if(builder_.nodes_stack_.size() == 0){
-                throw std::logic_error("Build too soon");
+                throw std::logic_error("nodes stack size =0");
             }
-           // if(builder_.first_run_){
-          //      throw std::logic_error("Build too soon");
-           // }
 
+/*
+            if( builder_.array_stack_.size() > 1){
+                throw std::logic_error("array_stack  > 1");
+            }
+
+            if(builder_.dict_stack_.size() > 1){
+                throw std::logic_error("dict_stack  > 1");
+            }
+*/
             return builder_.Build();
         }
-         bool ValueIsRoot(){
-             return builder_.ValueIsRoot();
-         }
+        bool ValueIsRoot(){
+            return builder_.ValueIsRoot();
+        }
 
+        Builder& GetBuilder(){
+            return builder_;
+        }
     private:
         Builder& builder_;
 
     };
+
+     class BuildContext : public BaseContext {
+     public:
+         BuildContext(BaseContext base)
+             : BaseContext(base) {
+         }
+     };
 
     class DictValueContext : public BaseContext {
     public:
@@ -130,8 +157,8 @@ private:
             throw std::logic_error("DictValueContext EndArray");
         }
         DictValueContext StartDict() {
-           // return BaseContext {*this}.StartDict();
-             throw std::logic_error("DictValueContext StartDict");
+            // return BaseContext {*this}.StartDict();
+            throw std::logic_error("DictValueContext StartDict");
         }
         ArrayItemContext StartArray() {
             throw std::logic_error("DictValueContext StartArray");
@@ -155,19 +182,25 @@ private:
             : BaseContext(base)
         {
         }
-       // BaseContext Build();
+        // BaseContext Build();
         //BaseContext EndArray() = delete;
         //DictValueContext StartDict() = delete;
         ArrayItemContext StartArray() {
-             throw std::logic_error("Value StartArray");
+            throw std::logic_error("StartArray after value");
         }
+        DictValueContext StartDict(){
+            if(!BaseContext {*this}.GetBuilder().in_array_){
+                throw std::logic_error("StartDict after Value");
+            }
+            return BaseContext {*this}.StartDict();
+       }
         ValueContext Value(Node node){
             return BaseContext {*this}.Value(node);
         }
 
         Node Build() {
             if(this->ValueIsRoot()){
-               return BaseContext {*this}.Build();
+                return BaseContext {*this}.Build();
             }else{
                 throw std::logic_error("Value Build");
             }
@@ -184,13 +217,13 @@ private:
             throw std::logic_error("Key Key");
         }
         BaseContext EndArray() {
-             throw std::logic_error("Key End array");
+            throw std::logic_error("Key End array");
         };
-      //  DictValueContext StartDict() = delete;
+        //  DictValueContext StartDict() = delete;
         Node Build() {
-             throw std::logic_error("Key build failed");
+            throw std::logic_error("Key build failed");
         }
-       // ArrayItemContext StartArray() = delete;
+        // ArrayItemContext StartArray() = delete;
     };
 
 

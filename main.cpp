@@ -7,7 +7,7 @@
 using namespace std;
 
 int main() {
-/*
+
     json::Print(
         json::Document{
             json::Builder{}
@@ -44,7 +44,7 @@ int main() {
         );
     cout << endl;
 
-*/
+
     json::Print(
         json::Document{
             json::Builder{}
@@ -67,6 +67,7 @@ int main() {
         );
     cout << endl;
 
+/*
 
     json::Print(
         json::Document{
@@ -84,6 +85,7 @@ int main() {
         cout
         );
     cout << endl;
+*/
 
 /*
     json::Print(
@@ -95,15 +97,34 @@ int main() {
     cout << endl;
 */
 
-/*
+
     json::Print(
         json::Document{
-            json::Builder{}.StartArray().StartDict().Key("1"s).Value(12).EndDict().EndDict().Build()
+            //json::Builder{}.StartDict().Key("1"s).Value("2"s).StartDict().Key("1"s).Value("2"s).EndDict().EndDict().Build()
+            json::Builder{}.StartArray().StartArray().EndArray().Value(1).EndArray().Build()
         },
         cout
         );
     cout << endl;
+
+
+    json::Print(
+        json::Document{
+            //json::Builder{}.StartDict().Key("1"s).Value("2"s).StartDict().Key("1"s).Value("2"s).EndDict().EndDict().Build()
+            json::Builder{}.Build()
+        },
+        cout
+        );
+    cout << endl;
+
+/*
+success
+json::Builder{}.StartArray().StartDict().EndDict().Value(1).EndArray().Build()
+json::Builder{}.StartArray().StartArray().EndArray().Value(1).EndArray().Build()
+json::Builder{}.StartDict().Key("1").StartDict().EndDict().Key("2").Value(2).EndDict().Build()
+json::Builder{}.StartDict().Key("1").StartArray().EndArray().Key("2").Value(2).EndDict().Build()
+
+
+
 */
-
-
 }
